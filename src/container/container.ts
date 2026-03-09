@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { container, delay } from 'tsyringe';
+import { container } from 'tsyringe';
 import { MetricsService } from '@/observability/metrics';
 import { FeatureFlagService } from '@/observability/featureFlags';
 import { prisma } from '@/infrastructure/database/prisma';

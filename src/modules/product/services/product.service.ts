@@ -2,15 +2,17 @@ import { Prisma } from '@prisma/client';
 import { injectable, inject } from 'tsyringe';
 import { IProductRepository } from '../interfaces/product.repository.interface';
 import { ProductMapper, ProductDto } from '../mappers/product.mapper';
-import { redis } from '@/infrastructure/cache/redis';
 import { NotFoundError, ForbiddenError } from '@/shared/errors/DomainErrors';
 import { ProductQueryDto, CreateProductDto, UpdateProductDto } from '../schemas/product.schema';
 import { eventBus, DomainEvent } from '@/events/eventBus';
+import { FeatureFlagService } from '@/observability/featureFlags';
+import { redis } from '@/infrastructure/cache/redis';
 
 @injectable()
 export class ProductService {
     constructor(
-        @inject('ProductRepository') private readonly productRepository: IProductRepository
+        @inject('ProductRepository') private readonly productRepository: IProductRepository,
+        private readonly featureFlags: FeatureFlagService
     ) { }
 
     async getProducts(query: ProductQueryDto): Promise<{ products: ProductDto[], meta: any }> {
@@ -18,6 +20,13 @@ export class ProductService {
         const skip = (page - 1) * limit;
 
         const where: Prisma.ProductWhereInput = { isActive: true };
+
+        // Example of FAANG Feature Flag usage: Dynamic Search Implementation
+        const useExperimentalSearch = this.featureFlags.isEnabled('experimental-search', false);
+        if (useExperimentalSearch) {
+            // Implement search using a different logic/service if flag is on
+        }
+
         if (search) {
             where.OR = [
                 { title: { contains: search, mode: 'insensitive' } },

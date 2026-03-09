@@ -9,7 +9,7 @@ import morgan from 'morgan';
 import { env } from '@/config/env';
 import { logger } from '@/observability/logger';
 import { healthCheckHandler } from '@/observability/health';
-import { metricsHandler, httpRequestDurationMicroseconds } from '@/observability/metrics';
+import { metricsHandler } from '@/observability/metrics';
 import { errorHandler, notFound } from '@/middleware/error.middleware';
 import { slidingWindowRateLimiter as apiLimiter } from '@/middleware/rateLimiter.middleware';
 import { SocketServer } from '@/realtime/socketServer';
