@@ -1,12 +1,10 @@
-import { Prisma, Product, PrismaClient } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { Prisma, Product } from '@prisma/client';
+import { injectable } from 'tsyringe';
 import { IProductRepository } from '../interfaces/product.repository.interface';
+import { prisma, prismaRead } from '@/infrastructure/database/prisma';
 
 @injectable()
 export class PrismaProductRepository implements IProductRepository {
-    constructor(
-        @inject('PrismaClient') private prisma: PrismaClient
-    ) { }
     async findMany(params: {
         skip?: number;
         take?: number;
@@ -16,7 +14,7 @@ export class PrismaProductRepository implements IProductRepository {
         include?: Prisma.ProductInclude;
     }): Promise<Product[]> {
         const { skip, take, cursor, where, orderBy, include } = params;
-        return this.prisma.product.findMany({
+        return prismaRead.product.findMany({
             skip,
             take,
             cursor,
@@ -27,37 +25,37 @@ export class PrismaProductRepository implements IProductRepository {
     }
 
     async findUnique(id: string, include?: Prisma.ProductInclude): Promise<Product | null> {
-        return this.prisma.product.findUnique({
+        return prismaRead.product.findUnique({
             where: { id },
             include,
         });
     }
 
     async findFirst(where: Prisma.ProductWhereInput, include?: Prisma.ProductInclude): Promise<Product | null> {
-        return this.prisma.product.findFirst({
+        return prismaRead.product.findFirst({
             where,
             include,
         });
     }
 
     async create(data: Prisma.ProductUncheckedCreateInput): Promise<Product> {
-        return this.prisma.product.create({
+        return prisma.product.create({
             data,
         });
     }
 
     async update(id: string, data: Prisma.ProductUncheckedUpdateInput): Promise<Product> {
-        return this.prisma.product.update({
+        return prisma.product.update({
             where: { id },
             data,
         });
     }
 
     async count(where: Prisma.ProductWhereInput): Promise<number> {
-        return this.prisma.product.count({ where });
+        return prismaRead.product.count({ where });
     }
 
-    async transaction<T>(fn: (prisma: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-        return this.prisma.$transaction(fn);
+    async transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+        return prisma.$transaction(fn);
     }
 }

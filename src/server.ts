@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import { initTracing } from '@/observability/tracing';
+initTracing(); // Must be first for auto-instrumentation
 import { httpServer } from '@/app';
 import { env } from '@/config/env';
 import { connectDatabase } from '@/infrastructure/database/prisma';
@@ -32,17 +34,36 @@ const start = async () => {
         });
 
         // Handle graceful shutdown
-        const shutdown = async () => {
-            logger.info('Shutting down server...');
+        const shutdown = async (signal: string) => {
+            logger.info({ msg: `Received ${signal}, starting graceful shutdown` });
+
+            const forceExit = setTimeout(() => {
+                logger.error('Graceful shutdown timed out, forcing exit');
+                process.exit(1);
+            }, 10000);
+
             httpServer.close(async () => {
                 logger.info('HTTP server closed');
-                // Potential disconnect calls for prisma/redis if needed
-                process.exit(0);
+                try {
+                    await orderWorker.close();
+                    logger.info('BullMQ worker closed');
+                    // Add other workers here
+
+                    await connectRedis(); // Ensure client exists before closing if needed, or use directly
+                    // redis.disconnect() or .quit()
+
+                    process.exit(0);
+                } catch (err) {
+                    logger.error('Error during shutdown', { err });
+                    process.exit(1);
+                } finally {
+                    clearTimeout(forceExit);
+                }
             });
         };
 
-        process.on('SIGTERM', shutdown);
-        process.on('SIGINT', shutdown);
+        process.on('SIGTERM', () => shutdown('SIGTERM'));
+        process.on('SIGINT', () => shutdown('SIGINT'));
 
     } catch (err) {
         logger.error('Failed to start server', { err });

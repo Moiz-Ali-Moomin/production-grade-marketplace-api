@@ -6,22 +6,38 @@ This is a production-grade marketplace backend built with **Node.js** and **Type
 
 ---
 
-## System Design
+## Architecture Design
 
-The project follows **Clean Architecture** principles to ensure maintainability and loose coupling between business logic and infra-level details.
+The project follows a **FAANG-grade modular architecture**, prioritizing reliability, observability, and horizontal scalability.
 
-### Architecture Flow
-```text
-Client (Mobile/Web) ──▶ API Layer (Express) ──▶ Service Layer (Business Logic) ──▶ Repository Layer (Data Abstraction) ──▶ Infrastructure (Prisma/PostgreSQL)
-                               │
-                               └─▶ Event Bus ──▶ Background Workers (BullMQ/Redis)
+### System Flow
+```mermaid
+graph TD
+    Client[Client App] --> GW[API Gateway / LB]
+    GW --> API[Express API v1]
+    API --> Middleware{Resilience Layer}
+    Middleware --> Idempotency[Idempotency Store - Redis]
+    Middleware --> RateLimit[Distributed Rate Limiter - Redis]
+    API --> Service[Service Layer]
+    Service --> CB[Circuit Breaker - Stripe]
+    Service --> Worker[BullMQ Workers]
+    Service --> Repo[Repository Layer]
+    Repo --> Primary[(PostgreSQL Primary - Writes)]
+    Repo --> Replica[(PostgreSQL Replica - Reads)]
+    API --> OTEL[OpenTelemetry Tracing]
+    OTEL --> Jaeger[Jaeger / Honeycomb]
 ```
 
-### Layer Responsibilities
-- **API Layer**: Handles HTTP requests, authentication, and request validation.
-- **Service Layer**: Orchestrates business logic and emits domain events.
-- **Repository Layer**: Abstracts data access logic, making services database-agnostic through interfaces.
-- **Infrastructure**: Handles external integrations like database (Prisma), caching (Redis), and payments (Stripe).
+## Reliability & Resiliency
+- **Idempotency**: `Idempotency-Key` headers ensure atomic execution of mutations (POST/PATCH/DELETE).
+- **Circuit Breakers**: External integrations (Stripe) are protected by `opossum` to prevent cascading failures.
+- **Graceful Shutdown**: 10-second drain window for HTTP, Workers, and DB connections.
+- **Exponential Backoff**: Automated retries for transient network flakiness.
+
+## Scaling Strategy
+- **Read/Write Splitting**: Queries are routed to Read Replicas, while mutations hit the Primary database.
+- **Background Processing**: Heavy tasks are offloaded to BullMQ workers, ensuring low API latency.
+- **Stateless Design**: All session/state is moved to Redis/DB, allowing infinite horizontal scaling of API nodes.
 
 ---
 

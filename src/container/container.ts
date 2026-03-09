@@ -1,9 +1,15 @@
 import 'reflect-metadata';
-import { container } from 'tsyringe';
+import { container, delay } from 'tsyringe';
+import { MetricsService } from '@/observability/metrics';
+import { FeatureFlagService } from '@/observability/featureFlags';
 import { prisma } from '@/infrastructure/database/prisma';
 import { redis } from '@/infrastructure/cache/redis';
 import { stripe } from '@/infrastructure/payments/stripe';
 import { firebase } from '@/infrastructure/auth/firebase';
+
+// Register Infrastructure
+container.registerSingleton(MetricsService);
+container.registerSingleton(FeatureFlagService);
 
 // Repositories
 import { PrismaProductRepository } from '@/modules/product/repositories/product.repository';

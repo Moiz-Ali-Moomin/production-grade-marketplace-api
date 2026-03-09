@@ -11,11 +11,12 @@ import { logger } from '@/observability/logger';
 import { healthCheckHandler } from '@/observability/health';
 import { metricsHandler, httpRequestDurationMicroseconds } from '@/observability/metrics';
 import { errorHandler, notFound } from '@/middleware/error.middleware';
-import { apiLimiter } from '@/middleware/rateLimiter.middleware';
+import { slidingWindowRateLimiter as apiLimiter } from '@/middleware/rateLimiter.middleware';
 import { SocketServer } from '@/realtime/socketServer';
 
 import { v1Router } from '@/api/v1';
 import { requestIdMiddleware } from '@/middleware/requestId.middleware';
+import { idempotencyMiddleware } from '@/middleware/idempotency.middleware';
 import { setupSwagger } from '@/docs/swagger';
 
 const app = express();
@@ -26,22 +27,15 @@ SocketServer.init(httpServer);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(requestIdMiddleware);
+app.use(idempotencyMiddleware);
 app.use(helmet());
 app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
 app.use(compression());
 app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 
-// Request duration tracking for metrics
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    httpRequestDurationMicroseconds
-      .labels(req.method, req.route?.path || req.path, res.statusCode.toString())
-      .observe(duration / 1000);
-  });
-  next();
-});
+import { metricsMiddleware } from '@/middleware/metrics.middleware';
+// ... inside middleware section
+app.use(metricsMiddleware);
 
 // Parsers
 app.use('/api/v1/orders/webhook', express.raw({ type: 'application/json' }));

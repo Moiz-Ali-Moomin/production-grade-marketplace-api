@@ -1,46 +1,24 @@
-import { Prisma, PrismaClient, User } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { injectable } from 'tsyringe';
+import { Prisma, User } from '@prisma/client';
 import { ISellerRepository } from '../interfaces/seller.repository.interface';
+import { prisma, prismaRead } from '@/infrastructure/database/prisma';
 
 @injectable()
 export class PrismaSellerRepository implements ISellerRepository {
-    constructor(
-        @inject('PrismaClient') private prisma: PrismaClient
-    ) { }
-
     async findUnique(id: string): Promise<User | null> {
-        return this.prisma.user.findUnique({
+        return prismaRead.user.findUnique({
             where: { id },
         });
     }
 
     async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
-        return this.prisma.user.update({
+        return prisma.user.update({
             where: { id },
             data,
         });
     }
 
-    async aggregate(fn: (prisma: PrismaClient) => Promise<any>): Promise<any> {
-        return fn(this.prisma);
-    }
-
-    async countOrders(where: Prisma.OrderWhereInput): Promise<number> {
-        return this.prisma.order.count({ where });
-    }
-
-    async aggregateOrders(where: Prisma.OrderWhereInput): Promise<any> {
-        return this.prisma.order.aggregate({
-            where,
-            _sum: { totalAmount: true },
-        });
-    }
-
-    async countProducts(where: Prisma.ProductWhereInput): Promise<number> {
-        return this.prisma.product.count({ where });
-    }
-
     async transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-        return this.prisma.$transaction(fn);
+        return prisma.$transaction(fn);
     }
 }

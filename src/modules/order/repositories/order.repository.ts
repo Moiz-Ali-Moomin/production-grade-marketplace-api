@@ -1,12 +1,10 @@
-import { Prisma, Order, PrismaClient } from '@prisma/client';
-import { injectable, inject } from 'tsyringe';
+import { Prisma, Order } from '@prisma/client';
+import { injectable } from 'tsyringe';
 import { IOrderRepository } from '../interfaces/order.repository.interface';
+import { prisma, prismaRead } from '@/infrastructure/database/prisma';
 
 @injectable()
 export class PrismaOrderRepository implements IOrderRepository {
-    constructor(
-        @inject('PrismaClient') private prisma: PrismaClient
-    ) { }
     async findMany(params: {
         skip?: number;
         take?: number;
@@ -15,7 +13,7 @@ export class PrismaOrderRepository implements IOrderRepository {
         include?: Prisma.OrderInclude;
     }): Promise<Order[]> {
         const { skip, take, where, orderBy, include } = params;
-        return this.prisma.order.findMany({
+        return prismaRead.order.findMany({
             skip,
             take,
             where,
@@ -25,37 +23,37 @@ export class PrismaOrderRepository implements IOrderRepository {
     }
 
     async findUnique(id: string, include?: Prisma.OrderInclude): Promise<Order | null> {
-        return this.prisma.order.findUnique({
+        return prismaRead.order.findUnique({
             where: { id },
             include,
         });
     }
 
     async findFirst(where: Prisma.OrderWhereInput, include?: Prisma.OrderInclude): Promise<Order | null> {
-        return this.prisma.order.findFirst({
+        return prismaRead.order.findFirst({
             where,
             include,
         });
     }
 
     async create(data: Prisma.OrderUncheckedCreateInput): Promise<Order> {
-        return this.prisma.order.create({
+        return prisma.order.create({
             data,
         });
     }
 
     async update(id: string, data: Prisma.OrderUncheckedUpdateInput): Promise<Order> {
-        return this.prisma.order.update({
+        return prisma.order.update({
             where: { id },
             data,
         });
     }
 
     async count(where: Prisma.OrderWhereInput): Promise<number> {
-        return this.prisma.order.count({ where });
+        return prismaRead.order.count({ where });
     }
 
-    async transaction<T>(fn: (prisma: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-        return this.prisma.$transaction(fn);
+    async transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+        return prisma.$transaction(fn);
     }
 }
