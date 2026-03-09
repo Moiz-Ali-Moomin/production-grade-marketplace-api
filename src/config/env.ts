@@ -17,6 +17,7 @@ export const env = cleanEnv(process.env, {
     GOOGLE_CALLBACK_URL: url(),
     STRIPE_SECRET_KEY: str(),
     STRIPE_WEBHOOK_SECRET: str(),
+    LOG_LEVEL: str({ default: 'info', choices: ['debug', 'info', 'warn', 'error'] }),
     STRIPE_CURRENCY: str({ default: 'usd' }),
     FIREBASE_PROJECT_ID: str(),
     FIREBASE_PRIVATE_KEY: str(),

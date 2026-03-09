@@ -1,4 +1,4 @@
-import { Worker, Job, Processor, WorkerOptions } from 'bullmq';
+import { Worker, Job, WorkerOptions } from 'bullmq';
 import { redis } from '@/infrastructure/cache/redis';
 import { logger } from '@/observability/logger';
 

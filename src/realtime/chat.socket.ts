@@ -18,7 +18,7 @@ export const registerChatHandlers = (io: Server, socket: Socket) => {
 
             io.to(roomId).emit('new_message', message);
         } catch (error) {
-            logger.error(error, 'Socket message error:');
+            logger.error('Socket message error', { error });
             socket.emit('error', { message: 'Failed to send message' });
         }
     });

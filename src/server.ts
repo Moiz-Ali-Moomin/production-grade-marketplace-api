@@ -45,7 +45,7 @@ const start = async () => {
         process.on('SIGINT', shutdown);
 
     } catch (err) {
-        logger.error(err, 'Failed to start server');
+        logger.error('Failed to start server', { err });
         process.exit(1);
     }
 };

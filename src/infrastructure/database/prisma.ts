@@ -16,7 +16,7 @@ export const connectDatabase = async () => {
         await prisma.$connect();
         logger.info('🐘 Database connected successfully');
     } catch (error) {
-        logger.error(error, '❌ Database connection failed');
+        logger.error('❌ Database connection failed', { error });
         throw error; // Let the caller handle bootstrap failure
     }
 };

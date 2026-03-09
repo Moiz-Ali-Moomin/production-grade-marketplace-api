@@ -1,14 +1,21 @@
-import pino from 'pino';
-import { env } from '../config/env';
+import winston from 'winston';
+import { env } from '@/config/env';
 
-export const logger = pino({
-    level: env.NODE_ENV === 'production' ? 'info' : 'debug',
-    transport: env.NODE_ENV !== 'production' ? {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-            translateTime: 'SYS:standard',
-            ignore: 'pid,hostname',
-        },
-    } : undefined,
+const logger = winston.createLogger({
+    level: env.LOG_LEVEL || 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    defaultMeta: { service: 'marketplace-api' },
+    transports: [
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.colorize(),
+                winston.format.simple()
+            ),
+        }),
+    ],
 });
+
+export { logger };

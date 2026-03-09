@@ -15,7 +15,7 @@ export const healthCheckHandler = async (_req: Request, res: Response) => {
         await prisma.$queryRaw`SELECT 1`;
         healthStatus.services.database = { status: 'UP' };
     } catch (error) {
-        logger.error(error, 'Health check: Database failed');
+        logger.error('Health check: Database failed', { error });
         healthStatus.status = 'DEGRADED';
         healthStatus.services.database = { status: 'DOWN' };
     }
@@ -25,7 +25,7 @@ export const healthCheckHandler = async (_req: Request, res: Response) => {
         await redis.ping();
         healthStatus.services.redis = { status: 'UP' };
     } catch (error) {
-        logger.error(error, 'Health check: Redis failed');
+        logger.error('Health check: Redis failed', { error });
         healthStatus.status = 'DEGRADED';
         healthStatus.services.redis = { status: 'DOWN' };
     }

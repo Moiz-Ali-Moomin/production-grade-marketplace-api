@@ -11,7 +11,7 @@ export const redis = new Redis(env.REDIS_URL, {
 });
 
 redis.on('connect', () => logger.info('🚀 Redis connected successfully'));
-redis.on('error', (error) => logger.error(error, '❌ Redis connection error'));
+redis.on('error', (error) => logger.error('❌ Redis connection error', { error }));
 
 export const connectRedis = async () => {
     if (redis.status === 'ready') return;

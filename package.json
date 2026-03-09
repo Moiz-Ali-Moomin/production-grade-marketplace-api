@@ -34,6 +34,8 @@
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.7.4",
     "stripe": "^14.17.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "tsyringe": "^4.10.0",
     "uuid": "^9.0.0",
     "winston": "^3.11.0"
@@ -52,6 +54,8 @@
     "@types/passport-google-oauth20": "^2.0.14",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^7.2.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^9.0.7",
     "cors": "^2.8.6",
     "envalid": "^8.1.1",

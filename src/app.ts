@@ -14,11 +14,9 @@ import { errorHandler, notFound } from '@/middleware/error.middleware';
 import { apiLimiter } from '@/middleware/rateLimiter.middleware';
 import { SocketServer } from '@/realtime/socketServer';
 
-import { authRoutes } from '@/modules/auth';
-import { productRoutes } from '@/modules/product';
-import { orderRoutes } from '@/modules/order';
-import { chatRoutes } from '@/modules/chat';
-import { sellerRoutes } from '@/modules/seller';
+import { v1Router } from '@/api/v1';
+import { requestIdMiddleware } from '@/middleware/requestId.middleware';
+import { setupSwagger } from '@/docs/swagger';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -27,6 +25,7 @@ const httpServer = http.createServer(app);
 SocketServer.init(httpServer);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
+app.use(requestIdMiddleware);
 app.use(helmet());
 app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
 app.use(compression());
@@ -56,13 +55,12 @@ app.use('/api', apiLimiter);
 app.get('/health', healthCheckHandler);
 app.get('/metrics', metricsHandler);
 
+// ─── Swagger ─────────────────────────────────────────────────────────────────
+setupSwagger(app);
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 const v1 = `/api/${env.API_VERSION}`;
-app.use(`${v1}/auth`, authRoutes);
-app.use(`${v1}/products`, productRoutes);
-app.use(`${v1}/orders`, orderRoutes);
-app.use(`${v1}/chat`, chatRoutes);
-app.use(`${v1}/seller`, sellerRoutes);
+app.use(v1, v1Router);
 
 // ─── Error Handling ───────────────────────────────────────────────────────────
 app.use(notFound);
